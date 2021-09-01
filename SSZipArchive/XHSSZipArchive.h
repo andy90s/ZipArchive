@@ -14,7 +14,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const SSZipArchiveErrorDomain;
+extern NSString *const XHSSZipArchiveErrorDomain;
 typedef NS_ENUM(NSInteger, SSZipArchiveErrorCode) {
     SSZipArchiveErrorCodeFailedOpenZipFile      = -1,
     SSZipArchiveErrorCodeFailedOpenFileInZip    = -2,
@@ -26,7 +26,7 @@ typedef NS_ENUM(NSInteger, SSZipArchiveErrorCode) {
 
 @protocol SSZipArchiveDelegate;
 
-@interface SSZipArchive : NSObject
+@interface XHSSZipArchive : NSObject
 
 // Password check
 + (BOOL)isFilePasswordProtectedAtPath:(NSString *)path;

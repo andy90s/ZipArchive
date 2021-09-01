@@ -9,7 +9,7 @@
 
 
 #if COCOAPODS
-#import <SSZipArchive.h>
+#import <XHSSZipArchive.h>
 #else
 #import <ZipArchive.h>
 #endif

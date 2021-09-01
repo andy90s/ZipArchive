@@ -5,19 +5,19 @@
 //  Created by Sam Soffes on 7/21/10.
 //
 
-#import "SSZipArchive.h"
+#import "XHSSZipArchive.h"
 #include "minizip/mz_compat.h"
 #include "minizip/mz_zip.h"
 #include "minizip/mz_os.h"
 #include <zlib.h>
 #include <sys/stat.h>
 
-NSString *const SSZipArchiveErrorDomain = @"SSZipArchiveErrorDomain";
+NSString *const XHSSZipArchiveErrorDomain = @"XHSSZipArchiveErrorDomain";
 
 #define CHUNK 16384
 
-int _zipOpenEntry(zipFile entry, NSString *name, const zip_fileinfo *zipfi, int level, NSString *password, BOOL aes);
-BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
+int _xhzipOpenEntry(zipFile entry, NSString *name, const zip_fileinfo *zipfi, int level, NSString *password, BOOL aes);
+BOOL _xhfileIsSymbolicLink(const unz_file_info *fileInfo);
 
 #ifndef API_AVAILABLE
 // Xcode 7- compatibility
@@ -33,11 +33,11 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 - (NSString *)_sanitizedPath;
 @end
 
-@interface SSZipArchive ()
+@interface XHSSZipArchive ()
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
 @end
 
-@implementation SSZipArchive
+@implementation XHSSZipArchive
 {
     /// path for zip file
     NSString *_path;
@@ -93,7 +93,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     zipFile zip = unzOpen(path.fileSystemRepresentation);
     if (zip == NULL) {
         if (error) {
-            *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+            *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                          code:SSZipArchiveErrorCodeFailedOpenZipFile
                                      userInfo:@{NSLocalizedDescriptionKey: @"failed to open zip file"}];
         }
@@ -113,7 +113,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             if (ret != UNZ_OK) {
                 if (ret != MZ_PASSWORD_ERROR) {
                     if (error) {
-                        *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+                        *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                                      code:SSZipArchiveErrorCodeFailedOpenFileInZip
                                                  userInfo:@{NSLocalizedDescriptionKey: @"failed to open file in zip archive"}];
                     }
@@ -125,7 +125,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             ret = unzGetCurrentFileInfo(zip, &fileInfo, NULL, 0, NULL, 0, NULL, 0);
             if (ret != UNZ_OK) {
                 if (error) {
-                    *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+                    *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                                  code:SSZipArchiveErrorCodeFileInfoNotLoadable
                                              userInfo:@{NSLocalizedDescriptionKey: @"failed to retrieve info for file"}];
                 }
@@ -139,7 +139,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                     // Let's assume other errors are caused by Content Not Readable
                     if (readBytes != Z_DATA_ERROR) {
                         if (error) {
-                            *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+                            *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                                          code:SSZipArchiveErrorCodeFileContentNotReadable
                                                      userInfo:@{NSLocalizedDescriptionKey: @"failed to read contents of file entry"}];
                         }
@@ -168,7 +168,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     zipFile zip = unzOpen(path.fileSystemRepresentation);
     if (zip == NULL) {
         if (error) {
-            *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+            *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                          code:SSZipArchiveErrorCodeFailedOpenZipFile
                                      userInfo:@{NSLocalizedDescriptionKey: @"failed to open zip file"}];
         }
@@ -182,7 +182,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             ret = unzOpenCurrentFile(zip);
             if (ret != UNZ_OK) {
                 if (error) {
-                    *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+                    *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                                  code:SSZipArchiveErrorCodeFailedOpenFileInZip
                                              userInfo:@{NSLocalizedDescriptionKey: @"failed to open file in zip archive"}];
                 }
@@ -192,7 +192,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             ret = unzGetCurrentFileInfo(zip, &fileInfo, NULL, 0, NULL, 0, NULL, 0);
             if (ret != UNZ_OK) {
                 if (error) {
-                    *error = [NSError errorWithDomain:SSZipArchiveErrorDomain
+                    *error = [NSError errorWithDomain:XHSSZipArchiveErrorDomain
                                                  code:SSZipArchiveErrorCodeFileInfoNotLoadable
                                              userInfo:@{NSLocalizedDescriptionKey: @"failed to retrieve info for file"}];
                 }
@@ -295,7 +295,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     if (path.length == 0 || destination.length == 0)
     {
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey: @"received invalid argument(s)"};
-        NSError *err = [NSError errorWithDomain:SSZipArchiveErrorDomain code:SSZipArchiveErrorCodeInvalidArguments userInfo:userInfo];
+        NSError *err = [NSError errorWithDomain:XHSSZipArchiveErrorDomain code:SSZipArchiveErrorCodeInvalidArguments userInfo:userInfo];
         if (error)
         {
             *error = err;
@@ -312,7 +312,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     if (zip == NULL)
     {
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey: @"failed to open zip file"};
-        NSError *err = [NSError errorWithDomain:SSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFailedOpenZipFile userInfo:userInfo];
+        NSError *err = [NSError errorWithDomain:XHSSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFailedOpenZipFile userInfo:userInfo];
         if (error)
         {
             *error = err;
@@ -337,7 +337,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     if (ret != UNZ_OK && ret != MZ_END_OF_LIST)
     {
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey: @"failed to open first file in zip file"};
-        NSError *err = [NSError errorWithDomain:SSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFailedOpenFileInZip userInfo:userInfo];
+        NSError *err = [NSError errorWithDomain:XHSSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFailedOpenFileInZip userInfo:userInfo];
         if (error)
         {
             *error = err;
@@ -380,7 +380,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             }
             
             if (ret != UNZ_OK) {
-                unzippingError = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFailedOpenFileInZip userInfo:@{NSLocalizedDescriptionKey: @"failed to open file in zip file"}];
+                unzippingError = [NSError errorWithDomain:@"XHSSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFailedOpenFileInZip userInfo:@{NSLocalizedDescriptionKey: @"failed to open file in zip file"}];
                 success = NO;
                 break;
             }
@@ -391,7 +391,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             
             ret = unzGetCurrentFileInfo(zip, &fileInfo, NULL, 0, NULL, 0, NULL, 0);
             if (ret != UNZ_OK) {
-                unzippingError = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFileInfoNotLoadable userInfo:@{NSLocalizedDescriptionKey: @"failed to retrieve info for file"}];
+                unzippingError = [NSError errorWithDomain:@"XHSSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFileInfoNotLoadable userInfo:@{NSLocalizedDescriptionKey: @"failed to retrieve info for file"}];
                 success = NO;
                 unzCloseCurrentFile(zip);
                 break;
@@ -428,9 +428,9 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             unzGetCurrentFileInfo(zip, &fileInfo, filename, fileInfo.size_filename + 1, NULL, 0, NULL, 0);
             filename[fileInfo.size_filename] = '\0';
             
-            BOOL fileIsSymbolicLink = _fileIsSymbolicLink(&fileInfo);
+            BOOL fileIsSymbolicLink = _xhfileIsSymbolicLink(&fileInfo);
             
-            NSString * strPath = [SSZipArchive _filenameStringWithCString:filename
+            NSString * strPath = [XHSSZipArchive _filenameStringWithCString:filename
                                                           version_made_by:fileInfo.version
                                                      general_purpose_flag:fileInfo.flag
                                                                      size:fileInfo.size_filename];
@@ -501,7 +501,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                                     NSString *message = [NSString stringWithFormat:@"Failed to write file (check your free space)"];
                                     NSLog(@"[SSZipArchive] %@", message);
                                     success = NO;
-                                    unzippingError = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFailedToWriteFile userInfo:@{NSLocalizedDescriptionKey: message}];
+                                    unzippingError = [NSError errorWithDomain:@"XHSSZipArchiveErrorDomain" code:SSZipArchiveErrorCodeFailedToWriteFile userInfo:@{NSLocalizedDescriptionKey: message}];
                                     break;
                                 }
                             }
@@ -649,7 +649,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                             NSString *message = [NSString stringWithFormat:@"Failed to delete existing symbolic link at \"%@\"", localError.localizedDescription];
                             NSLog(@"[SSZipArchive] %@", message);
                             success = NO;
-                            unzippingError = [NSError errorWithDomain:SSZipArchiveErrorDomain code:localError.code userInfo:@{NSLocalizedDescriptionKey: message}];
+                            unzippingError = [NSError errorWithDomain:XHSSZipArchiveErrorDomain code:localError.code userInfo:@{NSLocalizedDescriptionKey: message}];
                         }
                     }
                 }
@@ -723,7 +723,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     if (crc_ret == MZ_CRC_ERROR)
     {
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey: @"crc check failed for file"};
-        retErr = [NSError errorWithDomain:SSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFileInfoNotLoadable userInfo:userInfo];
+        retErr = [NSError errorWithDomain:XHSSZipArchiveErrorDomain code:SSZipArchiveErrorCodeFileInfoNotLoadable userInfo:userInfo];
     }
     
     if (error) {
@@ -750,14 +750,14 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 #pragma mark - Zipping
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray<NSString *> *)paths
 {
-    return [SSZipArchive createZipFileAtPath:path withFilesAtPaths:paths withPassword:nil];
+    return [XHSSZipArchive createZipFileAtPath:path withFilesAtPaths:paths withPassword:nil];
 }
 + (BOOL)createZipFileAtPath:(NSString *)path withContentsOfDirectory:(NSString *)directoryPath {
-    return [SSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath withPassword:nil];
+    return [XHSSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath withPassword:nil];
 }
 
 + (BOOL)createZipFileAtPath:(NSString *)path withContentsOfDirectory:(NSString *)directoryPath keepParentDirectory:(BOOL)keepParentDirectory {
-    return [SSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath keepParentDirectory:keepParentDirectory withPassword:nil];
+    return [XHSSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath keepParentDirectory:keepParentDirectory withPassword:nil];
 }
 
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray<NSString *> *)paths withPassword:(NSString *)password {
@@ -766,7 +766,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray<NSString *> *)paths withPassword:(NSString *)password progressHandler:(void(^ _Nullable)(NSUInteger entryNumber, NSUInteger total))progressHandler
 {
-    SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+    XHSSZipArchive *zipArchive = [[XHSSZipArchive alloc] initWithPath:path];
     BOOL success = [zipArchive open];
     if (success) {
         NSUInteger total = paths.count, complete = 0;
@@ -783,12 +783,12 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 }
 
 + (BOOL)createZipFileAtPath:(NSString *)path withContentsOfDirectory:(NSString *)directoryPath withPassword:(nullable NSString *)password {
-    return [SSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath keepParentDirectory:NO withPassword:password];
+    return [XHSSZipArchive createZipFileAtPath:path withContentsOfDirectory:directoryPath keepParentDirectory:NO withPassword:password];
 }
 
 
 + (BOOL)createZipFileAtPath:(NSString *)path withContentsOfDirectory:(NSString *)directoryPath keepParentDirectory:(BOOL)keepParentDirectory withPassword:(nullable NSString *)password {
-    return [SSZipArchive createZipFileAtPath:path
+    return [XHSSZipArchive createZipFileAtPath:path
                      withContentsOfDirectory:directoryPath
                          keepParentDirectory:keepParentDirectory
                                 withPassword:password
@@ -812,7 +812,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                         AES:(BOOL)aes
             progressHandler:(void(^ _Nullable)(NSUInteger entryNumber, NSUInteger total))progressHandler {
     
-    SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+    XHSSZipArchive *zipArchive = [[XHSSZipArchive alloc] initWithPath:path];
     BOOL success = [zipArchive open];
     if (success) {
         // use a local fileManager (queue/thread compatibility)
@@ -859,9 +859,9 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 
 + (BOOL)createZipFileAtPath:(NSString *)path withFilesAtPaths:(NSArray<NSString *> *)paths withPassword:(nullable NSString *)password keepSymlinks:(BOOL)keeplinks {
     if (!keeplinks) {
-        return [SSZipArchive createZipFileAtPath:path withFilesAtPaths:paths withPassword:password];
+        return [XHSSZipArchive createZipFileAtPath:path withFilesAtPaths:paths withPassword:password];
     } else {
-        SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+        XHSSZipArchive *zipArchive = [[XHSSZipArchive alloc] initWithPath:path];
         BOOL success = [zipArchive open];
         if (success) {
             for (NSString *filePath in paths) {
@@ -887,7 +887,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
             progressHandler:(void(^ _Nullable)(NSUInteger entryNumber, NSUInteger total))progressHandler
                keepSymlinks:(BOOL)keeplinks {
     if (!keeplinks) {
-        return [SSZipArchive createZipFileAtPath:path
+        return [XHSSZipArchive createZipFileAtPath:path
                          withContentsOfDirectory:directoryPath
                              keepParentDirectory:keepParentDirectory
                                 compressionLevel:compressionLevel
@@ -895,7 +895,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                                              AES:aes
                                  progressHandler:progressHandler];
     } else {
-        SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+        XHSSZipArchive *zipArchive = [[XHSSZipArchive alloc] initWithPath:path];
         BOOL success = [zipArchive open];
         if (success) {
             // use a local fileManager (queue/thread compatibility)
@@ -961,7 +961,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     }
     
     zip_fileinfo zipInfo = {};    
-    [SSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
+    [XHSSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
     
     //unpdate zipInfo.external_fa
     uint32_t target_attrib = 0;
@@ -1019,9 +1019,9 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     
     zip_fileinfo zipInfo = {};
     
-    [SSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
+    [XHSSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
     
-    int error = _zipOpenEntry(_zip, [folderName stringByAppendingString:@"/"], &zipInfo, Z_NO_COMPRESSION, password, NO);
+    int error = _xhzipOpenEntry(_zip, [folderName stringByAppendingString:@"/"], &zipInfo, Z_NO_COMPRESSION, password, NO);
     const void *buffer = NULL;
     zipWriteInFileInZip(_zip, buffer, 0);
     zipCloseFileInZip(_zip);
@@ -1056,7 +1056,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
     
     zip_fileinfo zipInfo = {};
     
-    [SSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
+    [XHSSZipArchive zipInfo:&zipInfo setAttributesOfItemAtPath:path];
     
     void *buffer = malloc(CHUNK);
     if (buffer == NULL)
@@ -1065,7 +1065,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
         return NO;
     }
     
-    int error = _zipOpenEntry(_zip, fileName, &zipInfo, compressionLevel, password, aes);
+    int error = _xhzipOpenEntry(_zip, fileName, &zipInfo, compressionLevel, password, aes);
     
     while (!feof(input) && !ferror(input))
     {
@@ -1093,9 +1093,9 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
         return NO;
     }
     zip_fileinfo zipInfo = {};
-    [SSZipArchive zipInfo:&zipInfo setDate:[NSDate date]];
+    [XHSSZipArchive zipInfo:&zipInfo setDate:[NSDate date]];
     
-    int error = _zipOpenEntry(_zip, filename, &zipInfo, compressionLevel, password, aes);
+    int error = _xhzipOpenEntry(_zip, filename, &zipInfo, compressionLevel, password, aes);
     
     zipWriteInFileInZip(_zip, data.bytes, (unsigned int)data.length);
     
@@ -1218,7 +1218,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 
 + (void)zipInfo:(zip_fileinfo *)zipInfo setDate:(NSDate *)date
 {
-    NSCalendar *currentCalendar = SSZipArchive._gregorian;
+    NSCalendar *currentCalendar = XHSSZipArchive._gregorian;
     NSCalendarUnit flags = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond;
     NSDateComponents *components = [currentCalendar components:flags fromDate:date];
     struct tm tmz_date;
@@ -1279,7 +1279,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 
 @end
 
-int _zipOpenEntry(zipFile entry, NSString *name, const zip_fileinfo *zipfi, int level, NSString *password, BOOL aes)
+int _xhzipOpenEntry(zipFile entry, NSString *name, const zip_fileinfo *zipfi, int level, NSString *password, BOOL aes)
 {
     // https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
     uint16_t made_on_darwin = 19 << 8;
@@ -1290,7 +1290,7 @@ int _zipOpenEntry(zipFile entry, NSString *name, const zip_fileinfo *zipfi, int 
 
 #pragma mark - Private tools for file info
 
-BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo)
+BOOL _xhfileIsSymbolicLink(const unz_file_info *fileInfo)
 {
     //
     // Determine whether this is a symbolic link:
